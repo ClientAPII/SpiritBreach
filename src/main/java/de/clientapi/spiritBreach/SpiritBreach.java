@@ -291,7 +291,7 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
 
     @Override
     public String getVersion() {
-        return "1.0";
+        return "1.1.1";
     }
 
     @Override
