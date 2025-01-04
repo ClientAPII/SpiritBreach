@@ -25,6 +25,7 @@ import java.util.Random;
 public class SpiritBreach extends CoreAbility implements AddonAbility {
 
     private long cooldown;
+    private long dimensionalCooldown;
     private double maxDistance;
     private boolean activated;
     private boolean isDimensionalTravel;
@@ -53,7 +54,8 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
     }
 
     private void setFields() {
-        this.cooldown = ConfigManager.getConfig().getLong("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.Cooldown", 15000);
+        this.cooldown = ConfigManager.getConfig().getLong("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.Cooldown", 15) * 1000;
+        this.dimensionalCooldown = ConfigManager.getConfig().getLong("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.DimensionalCooldown", 900) * 1000;
         this.maxDistance = ConfigManager.getConfig().getDouble("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.MaxDistance", 15.0);
         this.activated = false;
     }
@@ -79,21 +81,16 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
         Location targetLocation;
         Location playerLoc = player.getLocation();
 
-
         if (player.getTargetBlockExact((int) maxDistance) != null) {
-
             targetLocation = player.getTargetBlockExact((int) maxDistance).getLocation();
             targetLocation.add(0.5, 1, 0.5);
         } else {
-
             Vector direction = player.getEyeLocation().getDirection().normalize();
             targetLocation = playerLoc.clone().add(direction.multiply(maxDistance));
         }
 
-
         ParticleEffect.PORTAL.display(playerLoc, 10, 0.5, 0.5, 0.5);
         ParticleEffect.PORTAL.display(targetLocation, 10, 0.5, 0.5, 0.5);
-
 
         player.teleport(targetLocation, TeleportCause.PLUGIN);
         remove();
@@ -126,7 +123,7 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
         }
 
         if (targetWorld == null) {
-            player.sendMessage("No valid dimension found to travel to!");
+           // player.sendMessage("No valid dimension found to travel to!");
             remove();
             return;
         }
@@ -134,7 +131,7 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
 
         Location targetLoc = findSafeLocation(targetWorld);
         if (targetLoc == null) {
-            player.sendMessage("No safe location found in target dimension!");
+           // player.sendMessage("No safe location found in target dimension!");
             remove();
             return;
         }
@@ -155,7 +152,7 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
 
         int searchRange = switch (world.getEnvironment()) {
             case NETHER -> 2500;
-            case THE_END -> 5500;
+            case THE_END -> 4500;
             default -> 2500;
         };
 
@@ -232,6 +229,11 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
     }
 
     @Override
+    public long getCooldown() {
+        return isDimensionalTravel ? dimensionalCooldown : cooldown;
+    }
+
+    @Override
     public boolean isSneakAbility() {
         return isDimensionalTravel;
     }
@@ -252,11 +254,6 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
     }
 
     @Override
-    public long getCooldown() {
-        return cooldown;
-    }
-
-    @Override
     public String getName() {
         return "SpiritBreach";
     }
@@ -268,7 +265,8 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
 
     @Override
     public void load() {
-        ConfigManager.getConfig().addDefault("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.Cooldown", 15000);
+        ConfigManager.getConfig().addDefault("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.Cooldown", 15); // 15 seconds
+        ConfigManager.getConfig().addDefault("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.DimensionalCooldown", 900); // 15 minutes in seconds
         ConfigManager.getConfig().addDefault("ExtraAbilities.ClientAPI.Spirit.SpiritBreach.MaxDistance", 15.0);
         ConfigManager.defaultConfig.save();
 
@@ -288,17 +286,17 @@ public class SpiritBreach extends CoreAbility implements AddonAbility {
 
     @Override
     public String getAuthor() {
-        return "ClientAPI";
+        return "ClientAPII";
     }
 
     @Override
     public String getVersion() {
-        return "1.1";
+        return "1.0";
     }
 
     @Override
     public String getDescription() {
-        return "Allows the user to teleport up to 15 blocks in any direction with left-click and travel between dimensions with sneak.";
+        return "Allows the user to teleport up to 15 blocks in any direction with left-click (15s cooldown) and travel between dimensions with sneak (15min cooldown).";
     }
 
     @Override
